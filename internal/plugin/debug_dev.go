@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // debugBodyMeta describes request encoding without embedding the body.

@@ -14,7 +14,7 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // SSEFramer buffers SSE bytes across chunks and yields complete frames.

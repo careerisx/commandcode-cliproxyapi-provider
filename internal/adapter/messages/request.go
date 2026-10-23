@@ -7,9 +7,9 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 
-	"commandcode-go-cliproxyapi/internal/adapter/shared"
-	"commandcode-go-cliproxyapi/internal/errclass"
-	"commandcode-go-cliproxyapi/internal/thinking"
+	"commandcode-cliproxyapi-provider/internal/adapter/shared"
+	"commandcode-cliproxyapi-provider/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/thinking"
 )
 
 type anthropicBlock = map[string]any

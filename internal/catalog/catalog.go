@@ -20,7 +20,7 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 
-	"commandcode-go-cliproxyapi/internal/config"
+	"commandcode-cliproxyapi-provider/internal/config"
 )
 
 // catalogBudgetFloor keeps an undersized max-response-bytes knob from

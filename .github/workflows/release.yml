@@ -23,7 +23,7 @@ jobs:
       CGO_ENABLED: '1'
       GOOS: linux
       GOARCH: amd64
-      PLUGIN_ID: commandcode-go-cliproxyapi
+      PLUGIN_ID: commandcode-cliproxyapi-provider
     steps:
       - name: 检出 tag 对应源码
         uses: actions/checkout@v4

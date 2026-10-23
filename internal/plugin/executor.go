@@ -20,13 +20,13 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginabi"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 
-	"commandcode-go-cliproxyapi/internal/adapter/chatcompletions"
-	"commandcode-go-cliproxyapi/internal/adapter/messages"
-	"commandcode-go-cliproxyapi/internal/adapter/responses"
-	"commandcode-go-cliproxyapi/internal/adapter/shared"
-	"commandcode-go-cliproxyapi/internal/catalog"
-	"commandcode-go-cliproxyapi/internal/config"
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/adapter/chatcompletions"
+	"commandcode-cliproxyapi-provider/internal/adapter/messages"
+	"commandcode-cliproxyapi-provider/internal/adapter/responses"
+	"commandcode-cliproxyapi-provider/internal/adapter/shared"
+	"commandcode-cliproxyapi-provider/internal/catalog"
+	"commandcode-cliproxyapi-provider/internal/config"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // executorRequest mirrors rpcExecutorRequest: the SDK embeds

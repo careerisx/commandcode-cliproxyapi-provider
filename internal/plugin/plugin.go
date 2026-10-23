@@ -14,16 +14,16 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginabi"
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 
-	"commandcode-go-cliproxyapi/internal/catalog"
-	"commandcode-go-cliproxyapi/internal/config"
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/catalog"
+	"commandcode-cliproxyapi-provider/internal/config"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // ProviderID is the single provider key served by this plugin (FR-001).
 const ProviderID = "commandcode"
 
 // pluginName 是宿主注册使用的稳定插件名称。
-const pluginName = "commandcode-go-cliproxyapi"
+const pluginName = "commandcode-cliproxyapi-provider"
 
 // pluginVersion 是本地构建的默认版本，Release 构建通过 -ldflags -X 注入 tag 版本。
 var pluginVersion = "0.1.3"

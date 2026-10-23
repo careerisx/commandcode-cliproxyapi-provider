@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"commandcode-go-cliproxyapi/internal/adapter/shared"
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/adapter/shared"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // ---- upstream Responses result shapes (decode-only) ----

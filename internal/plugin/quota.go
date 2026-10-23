@@ -13,7 +13,7 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v8/sdk/pluginapi"
 	"github.com/tidwall/gjson"
 
-	"commandcode-go-cliproxyapi/resources"
+	"commandcode-cliproxyapi-provider/resources"
 )
 
 // Account endpoints (CommandCode account surface). They live on the provider

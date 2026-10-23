@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"commandcode-go-cliproxyapi/internal/adapter/shared"
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/adapter/shared"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // StreamConverter incrementally converts an upstream Chat Completions

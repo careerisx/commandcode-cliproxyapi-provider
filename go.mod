@@ -1,4 +1,4 @@
-module commandcode-go-cliproxyapi
+module commandcode-cliproxyapi-provider
 
 go 1.26.7
 

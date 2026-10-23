@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"commandcode-go-cliproxyapi/internal/adapter/shared"
-	"commandcode-go-cliproxyapi/internal/errclass"
+	"commandcode-cliproxyapi-provider/internal/adapter/shared"
+	"commandcode-cliproxyapi-provider/internal/errclass"
 )
 
 // StreamConverter converts an upstream /v1/responses SSE stream into the
