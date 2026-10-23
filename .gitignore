@@ -1,0 +1,10 @@
+dist/
+plugins/
+*.so
+*.dylib
+*.dll
+*.h
+.idea
+
+commandcode-cliproxyapi-provider
+newapi-cliproxy-provider
