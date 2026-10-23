@@ -22,15 +22,15 @@ import (
 // ProviderID is the single provider key served by this plugin (FR-001).
 const ProviderID = "commandcode"
 
-// pluginName / pluginVersion are reported in registration metadata.
-const (
-	pluginName    = "commandcode-go-cliproxyapi"
-	pluginVersion = "0.1.3"
-)
+// pluginName 是宿主注册使用的稳定插件名称。
+const pluginName = "commandcode-go-cliproxyapi"
+
+// pluginVersion 是本地构建的默认版本，Release 构建通过 -ldflags -X 注入 tag 版本。
+var pluginVersion = "0.1.3"
 
 // githubRepoURL 指向本插件的源码及 Release 发布仓库，供宿主识别更新来源。
 // 本插件派生自 https://github.com/massiveits/opencode-go-cliproxyapi。
-const githubRepoURL = "https://github.com/careerisx/cpa-plusins"
+const githubRepoURL = "https://github.com/careerisx/commandcode-cliproxyapi-provider"
 
 // registerRefreshTimeout bounds ONLY the synchronous initial/reconfigure
 // refreshOnce so a slow catalog cannot block host startup/reconfigure for a
