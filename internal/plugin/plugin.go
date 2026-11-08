@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -27,7 +26,7 @@ const ProviderID = "commandcode"
 const pluginName = "commandcode-cliproxyapi-provider"
 
 // pluginVersion 是本地构建的默认版本，Release 构建通过 -ldflags -X 注入 tag 版本。
-var pluginVersion = "0.2.3"
+var pluginVersion = "0.2.4"
 
 // githubRepoURL 指向本插件的源码及 Release 发布仓库，供宿主识别更新来源。
 // 本插件派生自 https://github.com/massiveits/opencode-go-cliproxyapi。
@@ -49,8 +48,7 @@ type Manager struct {
 	// their stop-wait-install steps cannot interleave into orphaned tickers.
 	lifeMu sync.Mutex
 
-	// Login sessions and unresolved saves share lifeMu with account admission.
-	logins           map[string]*loginSession
+	// credentialClaims 在保存结果未确认时保留 key 摘要，lifeMu 防止重复添加同一凭据。
 	credentialClaims map[string]bool
 	mu               sync.RWMutex
 	cfg              config.Config
@@ -107,26 +105,8 @@ func (m *Manager) HandleCall(method string, request []byte) (resp []byte, err er
 		}
 		debugTrace("auth parse response provider=%s id=%s attr_api_key_present=%t storage_json_bytes=%d", resp.Auth.Provider, resp.Auth.ID, strings.TrimSpace(resp.Auth.Attributes["api_key"]) != "", len(resp.Auth.StorageJSON))
 		return okEnvelope(resp), nil
-	case pluginabi.MethodAuthLoginStart:
-		var req struct {
-			pluginapi.AuthLoginStartRequest
-		}
-		if json.Unmarshal(request, &req) != nil {
-			return ErrEnvelope("invalid_request", "malformed auth login request body"), nil
-		}
-		resp, err := m.startLogin(req.AuthLoginStartRequest)
-		if err != nil {
-			return ErrEnvelope("auth_failure", err.Error()), nil
-		}
-		return okEnvelope(resp), nil
-	case pluginabi.MethodAuthLoginPoll:
-		var req struct{ pluginapi.AuthLoginPollRequest }
-		if json.Unmarshal(request, &req) != nil {
-			return ErrEnvelope("invalid_request", "malformed auth poll request body"), nil
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), quotaMaxTimeout)
-		defer cancel()
-		return okEnvelope(m.pollLogin(ctx, req.AuthLoginPollRequest)), nil
+	case pluginabi.MethodAuthLoginStart, pluginabi.MethodAuthLoginPoll:
+		return ErrEnvelope("unsupported", "不再提供 OAuth 登录，请在 CommandCode 账户与额度页面输入 API key"), nil
 	case pluginabi.MethodAuthRefresh:
 		var req struct{ pluginapi.AuthRefreshRequest }
 		if json.Unmarshal(request, &req) != nil {
@@ -188,7 +168,7 @@ func registrationEnvelope() []byte {
 	return okEnvelope(registrationResult{
 		SchemaVersion: pluginabi.SchemaVersion,
 		Metadata: pluginapi.Metadata{
-			Name:             pluginName,
+			Name:             "CommandCode",
 			Version:          pluginVersion,
 			Author:           pluginName,
 			GitHubRepository: githubRepoURL,
@@ -197,7 +177,8 @@ func registrationEnvelope() []byte {
 		},
 		Capabilities: capabilities{
 			ModelProvider:         true,
-			AuthProvider:          true,
+			// 账户文件由宿主通用 JSON 加载器读取；关闭此能力以移除原生 OAuth 登录入口。
+			AuthProvider:          false,
 			Executor:              true,
 			ExecutorModelScope:    pluginapi.ExecutorModelScopeOAuth,
 			ExecutorInputFormats:  formats,
@@ -208,7 +189,7 @@ func registrationEnvelope() []byte {
 	})
 }
 
-// registerManagement 注册账户接口与授权引导页，额度展示由宿主原生入口负责。
+// registerManagement 注册内置账户与额度页面，以及手动添加 API key 的管理接口。
 func (m *Manager) registerManagement(request []byte) ([]byte, error) {
 	var req struct {
 		Plugin           pluginapi.Metadata `json:"Plugin"`
@@ -233,15 +214,12 @@ func (m *Manager) registerManagement(request []byte) ([]byte, error) {
 			Method string `json:"method"`
 			Path   string `json:"path"`
 		}{{Method: "POST", Path: "/plugins/" + pluginName + "/quota-usage"},
-			{Method: "POST", Path: "/plugins/" + pluginName + "/accounts"},
-			{Method: "POST", Path: "/plugins/" + pluginName + "/oauth/complete"},
-			{Method: "POST", Path: "/plugins/" + pluginName + "/oauth/session"},
-			{Method: "POST", Path: "/plugins/" + pluginName + "/oauth/cancel"}},
+			{Method: "POST", Path: "/plugins/" + pluginName + "/accounts"}},
 		Resources: []struct {
 			Path        string `json:"path"`
 			Menu        string `json:"menu"`
 			Description string `json:"description"`
-		}{{Path: "/oauth"}},
+		}{{Path: "/quota", Menu: "CommandCode", Description: "Manage CommandCode accounts and view quota."}},
 	}), nil
 }
 
@@ -275,14 +253,6 @@ func (m *Manager) handleLifecycle(request []byte) ([]byte, error) {
 	}
 	m.lifeMu.Lock()
 	defer m.lifeMu.Unlock()
-	m.mu.RLock()
-	configChanged := !reflect.DeepEqual(m.cfg, cfg)
-	m.mu.RUnlock()
-	// Older hosts resend identical plugin config after auth-file mutations.
-	// Only a real config change invalidates credentials not yet delivered.
-	if configChanged {
-		m.clearPendingLoginsLocked()
-	}
 	debugTrace("lifecycle config_loaded prefix_enabled=%t prefix=%s", cfg.ModelPrefix.Enabled, cfg.ModelPrefix.Value)
 	// A nil *HostBridge must not enter the interface as a typed nil, or
 	// catalog's nil-client guard never fires and Refresh panics inside Do.
@@ -400,7 +370,6 @@ var shutdownDrainTimeout = 15 * time.Second
 func (m *Manager) handleShutdown() ([]byte, error) {
 	m.lifeMu.Lock()
 	defer m.lifeMu.Unlock()
-	m.clearPendingLoginsLocked()
 	oldDone := m.closeStop()
 	if oldDone != nil {
 		<-oldDone
@@ -433,8 +402,6 @@ func (m *Manager) startRefreshLoop(cfg config.Config, mgr *catalog.Manager, inte
 	}()
 	go func() {
 		ticker := time.NewTicker(interval)
-		cleanupTicker := time.NewTicker(time.Minute)
-		defer cleanupTicker.Stop()
 		defer close(done)
 		defer ticker.Stop()
 		defer cancel()
@@ -442,7 +409,6 @@ func (m *Manager) startRefreshLoop(cfg config.Config, mgr *catalog.Manager, inte
 			select {
 			case <-stop:
 				return
-			case <-cleanupTicker.C:
 			case <-ticker.C:
 				func() {
 					defer func() {
@@ -454,12 +420,6 @@ func (m *Manager) startRefreshLoop(cfg config.Config, mgr *catalog.Manager, inte
 					}()
 					refreshOnce(stopCtx, mgr, m.bridge, cfg.RequestTimeout)
 				}()
-			}
-			// Lifecycle changes hold lifeMu while waiting for this loop to exit.
-			// Never wait for that lock here; a busy lifecycle will clean or retry.
-			if m.lifeMu.TryLock() {
-				m.pruneLoginsLocked()
-				m.lifeMu.Unlock()
 			}
 		}
 	}()

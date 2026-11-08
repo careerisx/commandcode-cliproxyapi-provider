@@ -54,14 +54,12 @@ func (m *Manager) checkExistingCredentialLocked(ctx context.Context, key string)
 	return nil
 }
 
-// prepareCredentialLocked is the admission seam shared by manual entry and the
-// browser guide. Caller holds lifeMu until staged or save attempted.
+// prepareCredentialLocked 校验内置页面提交的 API key；调用方持有 lifeMu 直至尝试保存。
 func (m *Manager) prepareCredentialLocked(ctx context.Context, rawKey, source string) (pluginapi.AuthData, *credentialError) {
 	key := strings.TrimSpace(rawKey)
 	if len(key) == 0 || len(key) > 8192 || strings.IndexFunc(key, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
 		return pluginapi.AuthData{}, &credentialError{http.StatusBadRequest, "请输入不含空白或控制字符的 API key"}
 	}
-	m.pruneLoginsLocked()
 	if failure := m.checkExistingCredentialLocked(ctx, key); failure != nil {
 		return pluginapi.AuthData{}, failure
 	}
