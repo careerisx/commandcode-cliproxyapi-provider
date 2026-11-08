@@ -26,7 +26,7 @@ const ProviderID = "commandcode"
 const pluginName = "commandcode-cliproxyapi-provider"
 
 // pluginVersion 是本地构建的默认版本，Release 构建通过 -ldflags -X 注入 tag 版本。
-var pluginVersion = "0.1.3"
+var pluginVersion = "0.2.2"
 
 // githubRepoURL 指向本插件的源码及 Release 发布仓库，供宿主识别更新来源。
 // 本插件派生自 https://github.com/massiveits/opencode-go-cliproxyapi。
@@ -205,6 +205,7 @@ func registrationEnvelope() []byte {
 	})
 }
 
+// registerManagement 注册账户接口与授权引导页，额度展示由宿主原生入口负责。
 func (m *Manager) registerManagement(request []byte) ([]byte, error) {
 	var req struct {
 		Plugin           pluginapi.Metadata `json:"Plugin"`
@@ -237,8 +238,7 @@ func (m *Manager) registerManagement(request []byte) ([]byte, error) {
 			Path        string `json:"path"`
 			Menu        string `json:"menu"`
 			Description string `json:"description"`
-		}{{Path: "/quota", Menu: "CommandCode", Description: "Manage CommandCode accounts and view quota."},
-			{Path: "/oauth"}},
+		}{{Path: "/oauth"}},
 	}), nil
 }
 

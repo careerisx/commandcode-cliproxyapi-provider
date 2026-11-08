@@ -187,10 +187,8 @@ func accountCard(entry pluginapi.HostAuthFileEntry) quotaCard {
 		Disabled: entry.Disabled || entry.Status == "disabled", Status: entry.Status}
 }
 
+// HandleManagement 提供授权引导页并处理账户、额度和登录会话请求。
 func (m *Manager) HandleManagement(ctx context.Context, req pluginapi.ManagementRequest) (pluginapi.ManagementResponse, error) {
-	if req.Method == http.MethodGet && req.Path == "/v0/resource/plugins/"+pluginName+"/quota" {
-		return pluginapi.ManagementResponse{Headers: http.Header{"Content-Type": []string{"text/html; charset=utf-8"}}, Body: []byte(resources.QuotaPage)}, nil
-	}
 	if req.Method == http.MethodGet && req.Path == "/v0/resource/plugins/"+pluginName+"/oauth" {
 		return pluginapi.ManagementResponse{Headers: http.Header{"Content-Type": {"text/html; charset=utf-8"}, "Cache-Control": {"no-store"}, "Referrer-Policy": {"no-referrer"}}, Body: []byte(resources.OAuthPage)}, nil
 	}
