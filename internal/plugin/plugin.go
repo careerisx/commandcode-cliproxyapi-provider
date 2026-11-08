@@ -17,6 +17,7 @@ import (
 	"commandcode-cliproxyapi-provider/internal/catalog"
 	"commandcode-cliproxyapi-provider/internal/config"
 	"commandcode-cliproxyapi-provider/internal/errclass"
+	"commandcode-cliproxyapi-provider/resources"
 )
 
 // ProviderID is the single provider key served by this plugin (FR-001).
@@ -26,7 +27,7 @@ const ProviderID = "commandcode"
 const pluginName = "commandcode-cliproxyapi-provider"
 
 // pluginVersion 是本地构建的默认版本，Release 构建通过 -ldflags -X 注入 tag 版本。
-var pluginVersion = "0.2.2"
+var pluginVersion = "0.2.3"
 
 // githubRepoURL 指向本插件的源码及 Release 发布仓库，供宿主识别更新来源。
 // 本插件派生自 https://github.com/massiveits/opencode-go-cliproxyapi。
@@ -181,6 +182,7 @@ type registrationResult struct {
 	Capabilities  capabilities       `json:"capabilities"`
 }
 
+// registrationEnvelope 声明插件展示信息及宿主可调用的能力。
 func registrationEnvelope() []byte {
 	formats := []string{"openai", "claude", "openai-response"}
 	return okEnvelope(registrationResult{
@@ -190,6 +192,7 @@ func registrationEnvelope() []byte {
 			Version:          pluginVersion,
 			Author:           pluginName,
 			GitHubRepository: githubRepoURL,
+			Logo:             resources.LogoDataURI,
 			ConfigFields:     []pluginapi.ConfigField{},
 		},
 		Capabilities: capabilities{
